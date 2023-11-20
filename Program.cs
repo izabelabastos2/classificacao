@@ -16,12 +16,14 @@ class Program
         string inputFilePath2 = "D:/repositories/classificacao/entrada_classificacao_PPP.txt";
         string outputFilePath = "D:/repositories/classificacao/saidas/classificacao_final_SERPRO.xlsx";
 
-     
+
         List<string> classificadosGeral = ReadAndProcessFile(inputFilePath1);
         List<string> classificadosPPP = ReadAndProcessFile(inputFilePath2);
 
+        // Combina os resultados em uma lista intercalada
+        List<string> combinedResults = CombineResults(classificadosGeral, classificadosPPP);
 
-        SaveToExcel(outputFilePath, classificadosGeral, classificadosPPP);
+        SaveToExcel(outputFilePath, classificadosGeral, classificadosPPP, combinedResults);
 
         Console.WriteLine("Resultados salvos com sucesso em: " + outputFilePath);
         Console.ReadLine(); // Aguarda pressionar Enter para fechar a aplicação
@@ -49,29 +51,52 @@ class Program
         return classificados;
     }
 
-    static void SaveToExcel(string filePath, List<string> dataGeral, List<string> dataPPP)
+    static List<string> CombineResults(List<string> classificadosGeral, List<string> classificadosPPP)
     {
-        // Cria um novo arquivo Excel
+        List<string> combinedResults = new List<string>();
+
+        int i = 0, j = 0;
+
+        // Combina os resultados seguindo a sequência desejada
+        while (i < classificadosGeral.Count && j < classificadosPPP.Count)
+        {
+            // Adiciona 3 elementos do arquivo 1
+            for (int count = 0; count < 3 && i < classificadosGeral.Count; count++)
+            {
+                combinedResults.Add(classificadosGeral[i]);
+                i++;
+            }
+
+            // Adiciona 1 elemento do arquivo 2
+            if (j < classificadosPPP.Count)
+            {
+                combinedResults.Add(classificadosPPP[j]);
+                j++;
+            }
+        }
+
+        return combinedResults;
+    }
+
+    static void SaveToExcel(string filePath, List<string> data1, List<string> data2, List<string> combinedData)
+    {
+
         using (var package = new ExcelPackage())
         {
-            // Adiciona abas ao arquivo para cada conjunto de dados
-            AddDataToWorksheet(package, "GERAL", dataGeral);
-            AddDataToWorksheet(package, "PPP", dataPPP);
+            AddDataToWorksheet(package, "GERAL", data1);
+            AddDataToWorksheet(package, "PPP", data2);
+            AddDataToWorksheet(package, "ResultadosCombinados", combinedData);
 
-            // Salva o arquivo Excel no caminho especificado
             package.SaveAs(new FileInfo(filePath));
         }
     }
 
     static void AddDataToWorksheet(ExcelPackage package, string sheetName, List<string> data)
     {
-        // Adiciona uma aba ao arquivo
         var worksheet = package.Workbook.Worksheets.Add(sheetName);
 
-        // Preenche a planilha com os dados
         for (int i = 0; i < data.Count; i++)
         {
-            // Insere cada elemento em uma linha separada
             worksheet.Cells[i + 1, 1].Value = data[i];
         }
     }
